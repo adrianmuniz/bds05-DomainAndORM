@@ -111,4 +111,13 @@ public class User {
 		User other = (User) obj;
 		return Objects.equals(id, other.id);
 	}
+	
+	public boolean hasHole(String roleName) {
+		for(Role role : roles) {
+			if(role.getAuthority().equals(roleName)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
