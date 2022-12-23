@@ -11,9 +11,37 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.devsuperior.movieflix.service.exceptions.DataBaseException;
+import com.devsuperior.movieflix.service.exceptions.ForbiddenException;
+import com.devsuperior.movieflix.service.exceptions.ResourceNotFoundException;
+import com.devsuperior.movieflix.service.exceptions.UnauthorizedException;
+
 @ControllerAdvice
 public class ResourceExceptionHandler {
-
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<StandardError> entityNotFound(ResourceNotFoundException e, HttpServletRequest request) {
+		HttpStatus status = HttpStatus.NOT_FOUND;
+		StandardError err = new StandardError();
+		err.setTimestamp(Instant.now());
+		err.setStatus(status.value());
+		err.setError("Resource not found");
+		err.setMesage(e.getMessage());
+		err.setPath(request.getRequestURI());
+		return ResponseEntity.status(status).body(err);
+	}
+	
+	@ExceptionHandler(DataBaseException.class)
+	public ResponseEntity<StandardError> dataBase(DataBaseException e, HttpServletRequest request) {
+		HttpStatus status = HttpStatus.BAD_REQUEST;
+		StandardError err = new StandardError();
+		err.setTimestamp(Instant.now());
+		err.setStatus(status.value());
+		err.setError("DataBase Exception");
+		err.setMesage(e.getMessage());
+		err.setPath(request.getRequestURI());
+		return ResponseEntity.status(status).body(err);
+	}
+	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ValidationError> validation(MethodArgumentNotValidException e, HttpServletRequest request) {
 		HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
@@ -30,5 +58,17 @@ public class ResourceExceptionHandler {
 		
 		
 		return ResponseEntity.status(status).body(err);
+	}
+	
+	@ExceptionHandler(ForbiddenException.class)
+	public ResponseEntity<OAuthCustomError> forbidden(ForbiddenException e, HttpServletRequest request) {
+		OAuthCustomError err = new OAuthCustomError("Forbidden", e.getMessage());
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+	}
+	
+	@ExceptionHandler(UnauthorizedException.class)
+	public ResponseEntity<OAuthCustomError> unauthorized(UnauthorizedException e, HttpServletRequest request) {
+		OAuthCustomError err = new OAuthCustomError("Unauthorized", e.getMessage());
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
 	}
 }
